@@ -16,6 +16,12 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: "addNewPerson")
+        
+        let defaults = NSUserDefaults.standardUserDefaults()
+        
+        if let savedPeople = defaults.objectForKey("people") as? NSData {
+            people = NSKeyedUnarchiver.unarchiveObjectWithData(savedPeople) as! [Person]
+        }
         // Do any additional setup after loading the view, typically from a nib.
     }
 
@@ -24,6 +30,12 @@ class ViewController: UIViewController {
         picker.allowsEditing = true
         picker.delegate = self
         presentViewController(picker, animated: true, completion: nil)
+    }
+    
+    func save() {
+        let savedData = NSKeyedArchiver.archivedDataWithRootObject(people)
+        let defaults = NSUserDefaults.standardUserDefaults()
+        defaults.setObject(savedData, forKey: "people")
     }
 }
 
@@ -63,7 +75,8 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate  
             person.name = newName.text!
             
             self.collectionView.reloadData()
-            })
+            self.save()
+        })
         
         presentViewController(ac, animated: true, completion: nil)
     }
@@ -95,6 +108,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         collectionView.reloadData()
         
         dismissViewControllerAnimated(true, completion: nil)
+        save()
     }
     
     func getDocumentsDirectory() -> String {
